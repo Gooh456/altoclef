@@ -24,6 +24,16 @@ This fork aims to improve AltoClef by fixing a lot of bugs and optimizing some t
 
 Because I rewrote a good portion of the `BeatMinecraftTask` a lot of the config settings don't work. Although I plan to implement configs in the future of course.  
 
+## 1.21.11 support (this fork)
+This branch adds a working **1.21.11** target on top of the above, including a self-built Baritone with the AltoClef integration patches ported over, since no prebuilt Baritone exists for this version yet.
+
+A few real bugs turned up (and got fixed) along the way, in case you're hitting any of these on older versions too:
+- 2x2/crafting-table crafting could get stuck permanently trying to move an oversatisfied slot's contents with the wrong click, or silently skip a fillable slot when a wrong-item check was inverted.
+- On a real (non-singleplayer) server, recipe lookups could come back empty and crash tasks that relied on them, since the recipe source used only ever works for hosting singleplayer/LAN.
+- A `ConcurrentModificationException` could crash the mob-defense "force field" logic (and a few related entity-lookup calls) - the entity tracker was handing out direct references to its own live lists instead of safe snapshots.
+
+Build it yourself with `./gradlew :1.21.11:build` (needs JDK 21) - the Baritone jar is already committed under `versions/baritone/dist/` so it works with zero extra setup.
+
 ## The preprocessor
 I am currently using the [replay mod preprocessor](https://github.com/ReplayMod/preprocessor) to keep the mod updated across multiple versions at the same time.
 
