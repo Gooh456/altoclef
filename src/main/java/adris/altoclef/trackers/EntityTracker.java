@@ -231,7 +231,10 @@ public class EntityTracker extends Tracker {
         }
         synchronized (BaritoneHelper.MINECRAFT_LOCK) {
             //noinspection unchecked
-            return (List<T>) entityMap.get(type);
+            // Return a snapshot copy, not the live list - callers iterate this after we've
+            // released the lock, and a concurrent tracker rebuild would otherwise throw a
+            // ConcurrentModificationException out from under them.
+            return new ArrayList<>((List<T>) entityMap.get(type));
         }
     }
 
@@ -241,7 +244,8 @@ public class EntityTracker extends Tracker {
     public List<Entity> getCloseEntities() {
         ensureUpdated();
         synchronized (BaritoneHelper.MINECRAFT_LOCK) {
-            return closeEntities;
+            // Snapshot copy - see getTrackedEntities for why.
+            return new ArrayList<>(closeEntities);
         }
     }
 
@@ -251,14 +255,16 @@ public class EntityTracker extends Tracker {
     public List<CachedProjectile> getProjectiles() {
         ensureUpdated();
         synchronized (BaritoneHelper.MINECRAFT_LOCK) {
-            return projectiles;
+            // Snapshot copy - see getTrackedEntities for why.
+            return new ArrayList<>(projectiles);
         }
     }
 
     public List<LivingEntity> getHostiles() {
         ensureUpdated();
         synchronized (BaritoneHelper.MINECRAFT_LOCK) {
-            return hostiles;
+            // Snapshot copy - see getTrackedEntities for why.
+            return new ArrayList<>(hostiles);
         }
     }
 
