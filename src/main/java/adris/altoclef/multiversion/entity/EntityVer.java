@@ -12,6 +12,15 @@ public class EntityVer {
 
 
     @Pattern
+    private static Vec3d getPos(Entity entity) {
+        //#if MC >= 12111
+        //$$ return entity.getEntityPos();
+        //#else
+        return entity.getPos();
+        //#endif
+    }
+
+    @Pattern
     public boolean isInNetherPortal(Entity entity) {
         //#if MC <= 12006
         //$$ return ((EntityAccessor)entity).isInNetherPortal();

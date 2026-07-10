@@ -139,9 +139,18 @@ public class CraftGenericWithRecipeBooksTask extends Task implements ITaskUsesCr
             if (mod.getSlotHandler().canDoSlotAction()) {
                 ClientPlayerEntity player = MinecraftClient.getInstance().player;
                 assert player != null;
+                //#if MC>=12111
+                //$$ java.util.Optional<net.minecraft.recipe.NetworkRecipeId> networkRecipeId = adris.altoclef.util.NetworkRecipeIdHelper.findMatching(player, recipeToSend.get());
+                //$$ if (networkRecipeId.isPresent()) {
+                //$$     // Click the recipe to send it
+                //$$     mod.getController().clickRecipe(player.currentScreenHandler.syncId, networkRecipeId.get(), true);
+                //$$     mod.getSlotHandler().registerSlotAction();
+                //$$ }
+                //#else
                 // Click the recipe to send it
                 mod.getController().clickRecipe(player.currentScreenHandler.syncId, recipeToSend.get().asRecipe(), true);
                 mod.getSlotHandler().registerSlotAction();
+                //#endif
             }
         }
 

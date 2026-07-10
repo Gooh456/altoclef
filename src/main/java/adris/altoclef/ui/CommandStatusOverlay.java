@@ -35,20 +35,30 @@ public class CommandStatusOverlay {
             paused = false;
         }
 
-        MatrixStack matrixStack = context.getMatrices();
-
-        matrixStack.push();
+        //#if MC >= 12111
+        //$$ context.getMatrices().pushMatrix();
+        //#else
+        context.getMatrices().push();
+        //#endif
 
         drawTaskChain(context,MinecraftClient.getInstance().textRenderer, 10, 10,
-                matrixStack, 10, tasks, mod);
+                10, tasks, mod);
 
-        matrixStack.pop();
+        //#if MC >= 12111
+        //$$ context.getMatrices().popMatrix();
+        //#else
+        context.getMatrices().pop();
+        //#endif
     }
 
-    private void drawTaskChain(DrawContextWrapper context, TextRenderer renderer, int x, int y, MatrixStack matrices, int maxLines, List<Task> tasks, AltoClef mod) {
+    private void drawTaskChain(DrawContextWrapper context, TextRenderer renderer, int x, int y, int maxLines, List<Task> tasks, AltoClef mod) {
         int whiteColor = 0xFFFFFFFF;
 
-        matrices.scale(0.5f,0.5f,0.5f);
+        //#if MC >= 12111
+        //$$ context.getMatrices().scale(0.5f,0.5f);
+        //#else
+        context.getMatrices().scale(0.5f,0.5f,0.5f);
+        //#endif
 
         int fontHeight = renderer.fontHeight;
         int addX = 4;

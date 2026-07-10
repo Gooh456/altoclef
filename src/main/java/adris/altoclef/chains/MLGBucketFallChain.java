@@ -95,7 +95,7 @@ public class MLGBucketFallChain extends SingleTaskChain implements ITaskOverride
             lastMLG = null;
         }
         if (mod.getPlayer().hasStatusEffect(StatusEffects.LEVITATION) &&
-                !mod.getPlayer().getItemCooldownManager().isCoolingDown(Items.CHORUS_FRUIT) &&
+                !adris.altoclef.util.helpers.ItemHelper.isCoolingDown(mod.getPlayer(), Items.CHORUS_FRUIT) &&
                 mod.getPlayer().getActiveStatusEffects().get(StatusEffects.LEVITATION).getDuration() <= 70 &&
                 mod.getItemStorage().hasItemInventoryOnly(Items.CHORUS_FRUIT) &&
                 !mod.getItemStorage().hasItemInventoryOnly(Items.WATER_BUCKET)) {

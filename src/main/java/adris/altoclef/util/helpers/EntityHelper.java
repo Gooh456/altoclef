@@ -53,13 +53,11 @@ public class EntityHelper {
 
     public static boolean isTradingPiglin(Entity entity) {
         if (entity instanceof PiglinEntity pig) {
-            if (pig.getHandItems() != null) {
-                for (ItemStack stack : pig.getHandItems()) {
-                    if (stack.getItem().equals(Items.GOLD_INGOT)) {
-                        // We're trading with this one, ignore it.
-                        return true;
-                    }
-                }
+            ItemStack mainHand = pig.getEquippedStack(net.minecraft.entity.EquipmentSlot.MAINHAND);
+            ItemStack offHand = pig.getEquippedStack(net.minecraft.entity.EquipmentSlot.OFFHAND);
+            if (mainHand.getItem().equals(Items.GOLD_INGOT) || offHand.getItem().equals(Items.GOLD_INGOT)) {
+                // We're trading with this one, ignore it.
+                return true;
             }
         }
         return false;
@@ -73,8 +71,17 @@ public class EntityHelper {
         // Copied logic from `PlayerEntity.applyDamage`
         DamageSourceWrapper source = DamageSourceWrapper.of(src);
 
+        //#if MC >= 12111
+        //$$ net.minecraft.server.integrated.IntegratedServer integratedServer = net.minecraft.client.MinecraftClient.getInstance().getServer();
+        //$$ if (integratedServer != null) {
+        //$$     net.minecraft.server.world.ServerWorld serverWorld = integratedServer.getWorld(player.getEntityWorld().getRegistryKey());
+        //$$     if (serverWorld != null && player.isInvulnerableTo(serverWorld, src))
+        //$$         return 0;
+        //$$ }
+        //#else
         if (player.isInvulnerableTo(src))
             return 0;
+        //#endif
 
         // Armor Base
         if (!source.bypassesArmor()) {

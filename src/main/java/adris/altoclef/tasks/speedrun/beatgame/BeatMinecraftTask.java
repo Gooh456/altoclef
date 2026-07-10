@@ -37,10 +37,12 @@ import net.minecraft.client.gui.screen.CreditsScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.entity.Entity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.ItemEntity;
 import net.minecraft.entity.mob.*;
 import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.item.*;
+import net.minecraft.registry.tag.ItemTags;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.collection.DefaultedList;
 import net.minecraft.util.math.*;
@@ -356,12 +358,15 @@ public class BeatMinecraftTask extends Task {
     public static boolean hasItem(AltoClef mod, Item item) {
         ClientPlayerEntity player = mod.getPlayer();
         PlayerInventory inv = player.getInventory();
-        List<DefaultedList<ItemStack>> combinedInventory = List.of(inv.main, inv.armor, inv.offHand);
+        List<ItemStack> combinedInventory = new ArrayList<>(inv.main);
+        combinedInventory.add(player.getEquippedStack(EquipmentSlot.HEAD));
+        combinedInventory.add(player.getEquippedStack(EquipmentSlot.CHEST));
+        combinedInventory.add(player.getEquippedStack(EquipmentSlot.LEGS));
+        combinedInventory.add(player.getEquippedStack(EquipmentSlot.FEET));
+        combinedInventory.add(player.getEquippedStack(EquipmentSlot.OFFHAND));
 
-        for (List<ItemStack> list : combinedInventory) {
-            for (ItemStack itemStack : list) {
-                if (itemStack.getItem().equals(item)) return true;
-            }
+        for (ItemStack itemStack : combinedInventory) {
+            if (itemStack.getItem().equals(item)) return true;
         }
 
         return false;
@@ -1197,7 +1202,7 @@ public class BeatMinecraftTask extends Task {
             List<ItemStack> itemStacks = itemStorage.getItemStacksPlayerInventory(true);
             for (ItemStack itemStack : itemStacks) {
                 Item item = itemStack.getItem();
-                if (item instanceof SwordItem) {
+                if (itemStack.isIn(ItemTags.SWORDS)) {
                     mod.getSlotHandler().forceEquipItem(item);
                 }
             }

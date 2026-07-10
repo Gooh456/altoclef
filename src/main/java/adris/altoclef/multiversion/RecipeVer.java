@@ -10,7 +10,10 @@ public class RecipeVer {
 
 
     public static ItemStack getOutput(Recipe<?> recipe, World world) {
-        //#if MC >= 11904
+        //#if MC >= 12111
+        //$$ return recipe.getDisplays().isEmpty() ? ItemStack.EMPTY
+        //$$         : recipe.getDisplays().get(0).result().getFirst(net.minecraft.recipe.display.SlotDisplayContexts.createParameters(world));
+        //#elseif MC >= 11904
         return recipe.getResult(world.getRegistryManager());
         //#else
         //$$ return recipe.getOutput();

@@ -196,7 +196,7 @@ public class EscapeFromLavaTask extends CustomBaritoneGoalTask {
         Vec3d rotationVector = getRotationVector(pitch,yaw);
 
         Vec3d vec3d3 = cameraPos.add(rotationVector.x * maxDistance, rotationVector.y * maxDistance, rotationVector.z * maxDistance);
-        return mod.getPlayer().getWorld()
+        return mod.getPlayer().getEntityWorld()
                 .raycast(
                         new RaycastContext(
                                 cameraPos, vec3d3, RaycastContext.ShapeType.OUTLINE,

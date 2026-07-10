@@ -26,8 +26,12 @@ import net.minecraft.client.gui.screen.GameMenuScreen;
 import net.minecraft.client.gui.screen.Screen;
 import net.minecraft.client.gui.screen.option.GameOptionsScreen;
 import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.entity.EquipmentSlot;
 import net.minecraft.entity.player.PlayerInventory;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.*;
+import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.registry.tag.TagKey;
 import net.minecraft.screen.*;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -43,6 +47,14 @@ public class StorageHelper {
 
     public static List<PlayerSlot> INACCESSIBLE_PLAYER_SLOTS = Stream.concat(Stream.of(PlayerSlot.CRAFT_INPUT_SLOTS), Stream.of(PlayerSlot.ARMOR_SLOTS)).toList();
     private static final int OFF_HAND_SLOT = 40;
+
+    private static TagKey<Item> getToolCategory(ItemStack stack) {
+        if (stack.isIn(ItemTags.PICKAXES)) return ItemTags.PICKAXES;
+        if (stack.isIn(ItemTags.AXES)) return ItemTags.AXES;
+        if (stack.isIn(ItemTags.SHOVELS)) return ItemTags.SHOVELS;
+        if (stack.isIn(ItemTags.HOES)) return ItemTags.HOES;
+        return null;
+    }
 
     public static void closeScreen() {
         if (MinecraftClient.getInstance().player == null)
@@ -70,15 +82,15 @@ public class StorageHelper {
         PlayerInventory inv = player.getInventory();
         if (inv != null) {
             if (slot.equals(PlayerSlot.OFFHAND_SLOT))
-                return inv.offHand.stream().findFirst().orElse(ItemStack.EMPTY);
+                return player.getEquippedStack(EquipmentSlot.OFFHAND);
             if (slot.equals(PlayerSlot.ARMOR_HELMET_SLOT))
-                return inv.getArmorStack(3);
+                return player.getEquippedStack(EquipmentSlot.HEAD);
             if (slot.equals(PlayerSlot.ARMOR_CHESTPLATE_SLOT))
-                return inv.getArmorStack(2);
+                return player.getEquippedStack(EquipmentSlot.CHEST);
             if (slot.equals(PlayerSlot.ARMOR_LEGGINGS_SLOT))
-                return inv.getArmorStack(1);
+                return player.getEquippedStack(EquipmentSlot.LEGS);
             if (slot.equals(PlayerSlot.ARMOR_BOOTS_SLOT))
-                return inv.getArmorStack(0);
+                return player.getEquippedStack(EquipmentSlot.FEET);
         }
         try {
             // We might have messed up and opened the wrong slot.
@@ -150,7 +162,7 @@ public class StorageHelper {
             if (!slot.isSlotInPlayerInventory())
                 continue;
             ItemStack stack = getItemStackInSlot(slot);
-            if (stack.getItem() instanceof ToolItem) {
+            if (stack.getItem().getComponents().contains(DataComponentTypes.TOOL)) {
                 if (stack.getItem().getDefaultStack().isSuitableFor(state)) {
                     if (shouldSaveStack(mod,  state.getBlock(), stack)) continue;
 
@@ -227,8 +239,8 @@ public class StorageHelper {
         }
 
         // Try throwing away lower tier tools
-        final HashMap<Class, Integer> bestMaterials = new HashMap<>();
-        final HashMap<Class, Slot> bestToolSlot = new HashMap<>();
+        final HashMap<TagKey<Item>, Integer> bestMaterials = new HashMap<>();
+        final HashMap<TagKey<Item>, Slot> bestToolSlot = new HashMap<>();
 
         for (Slot slot : PlayerSlot.getCurrentScreenSlots()) {
             ItemStack stack = StorageHelper.getItemStackInSlot(slot);
@@ -237,21 +249,20 @@ public class StorageHelper {
 
             Item item = stack.getItem();
 
-            if (!(item instanceof ToolItem tool)) continue;
+            TagKey<Item> toolCategory = getToolCategory(stack);
+            if (toolCategory == null) continue;
 
-            Class clazz = tool.getClass();
-
-            int level = ToolMaterialVer.getMiningLevel(tool);
-            int prevBest = bestMaterials.getOrDefault(clazz, 0);
+            int level = ToolMaterialVer.getMiningLevel(item);
+            int prevBest = bestMaterials.getOrDefault(toolCategory, 0);
 
             if (level > prevBest) {
                 // We had a WORSE tool before.
-                if (bestMaterials.containsKey(clazz)) {
-                    return Optional.of(bestToolSlot.get(clazz));
+                if (bestMaterials.containsKey(toolCategory)) {
+                    return Optional.of(bestToolSlot.get(toolCategory));
                 }
 
-                bestMaterials.put(clazz, level);
-                bestToolSlot.put(clazz, slot);
+                bestMaterials.put(toolCategory, level);
+                bestToolSlot.put(toolCategory, slot);
             } else if (level < prevBest) {
                 // We found something WORSE!
                 return Optional.of(slot);
@@ -290,8 +301,8 @@ public class StorageHelper {
                 return possibleSlots.stream().min((leftSlot, rightSlot) -> {
                     ItemStack left = StorageHelper.getItemStackInSlot(leftSlot),
                             right = StorageHelper.getItemStackInSlot(rightSlot);
-                    boolean leftIsTool = left.getItem() instanceof ToolItem;
-                    boolean rightIsTool = right.getItem() instanceof ToolItem;
+                    boolean leftIsTool = left.getItem().getComponents().contains(DataComponentTypes.TOOL);
+                    boolean rightIsTool = right.getItem().getComponents().contains(DataComponentTypes.TOOL);
                     // Prioritize tools over materials.
                     if (rightIsTool && !leftIsTool) {
                         return -1;
@@ -300,8 +311,8 @@ public class StorageHelper {
                     }
                     if (rightIsTool) {
                         // Prioritize material type, then durability.
-                        ToolItem leftTool = (ToolItem) left.getItem();
-                        ToolItem rightTool = (ToolItem) right.getItem();
+                        Item leftTool = left.getItem();
+                        Item rightTool = right.getItem();
                         if (ToolMaterialVer.getMiningLevel(leftTool) != ToolMaterialVer.getMiningLevel(rightTool))
                             return ToolMaterialVer.getMiningLevel(leftTool) - ToolMaterialVer.getMiningLevel(rightTool);
                         // We want less damage.
@@ -417,8 +428,9 @@ public class StorageHelper {
         ClientPlayerEntity player = AltoClef.getInstance().getPlayer();
 
         for (Item item : any) {
-            if (item instanceof ArmorItem armor) {
-                ItemStack equippedStack = player.getInventory().getArmorStack(armor.getSlotType().getEntitySlotId());
+            EquipmentSlot armorSlot = ItemHelper.getArmorSlot(item);
+            if (armorSlot != null) {
+                ItemStack equippedStack = player.getEquippedStack(armorSlot);
                 if (equippedStack.getItem().equals(item))
                     return true;
             }

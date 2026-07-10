@@ -90,7 +90,7 @@ public class EquipArmorTask extends Task {
                     }
                 }
             } else {
-                ArmorItem item = (ArmorItem) Objects.requireNonNull(targetArmor.getMatches())[0];
+                Item item = Objects.requireNonNull(targetArmor.getMatches())[0];
                 if (item == null) {
                     Debug.logWarning("Item " + targetArmor + " is not armor! Will not equip.");
                 } else {
@@ -118,10 +118,19 @@ public class EquipArmorTask extends Task {
                                 StorageHelper.closeScreen();
                             }
                         }
-                        Slot toMove = PlayerSlot.getEquipSlot(item.getSlotType());
+                        //#if MC >= 12111
+                        //$$ net.minecraft.component.type.EquippableComponent equippable = item.getComponents().get(net.minecraft.component.DataComponentTypes.EQUIPPABLE);
+                        //$$ Slot toMove = equippable != null ? PlayerSlot.getEquipSlot(equippable.slot()) : null;
+                        //$$ if (toMove == null) {
+                        //$$     Debug.logWarning("Invalid armor equip slot for item " + item.getTranslationKey() + ": " + equippable);
+                        //$$ }
+                        //#else
+                        net.minecraft.entity.EquipmentSlot equipSlot = item instanceof net.minecraft.item.ArmorItem armorItem ? armorItem.getSlotType() : null;
+                        Slot toMove = equipSlot != null ? PlayerSlot.getEquipSlot(equipSlot) : null;
                         if (toMove == null) {
-                            Debug.logWarning("Invalid armor equip slot for item " + item.getTranslationKey() + ": " + item.getSlotType());
+                            Debug.logWarning("Invalid armor equip slot for item " + item.getTranslationKey() + ": " + equipSlot);
                         }
+                        //#endif
                         return new MoveItemToSlotFromInventoryTask(targetArmor, toMove);
                     }
                 }

@@ -10,7 +10,7 @@ import adris.altoclef.commandsystem.exception.RuntimeCommandException;
 import adris.altoclef.tasks.misc.EquipArmorTask;
 import adris.altoclef.util.ItemTarget;
 import adris.altoclef.util.helpers.ItemHelper;
-import net.minecraft.item.Equipment;
+import net.minecraft.component.DataComponentTypes;
 import net.minecraft.item.Item;
 
 import java.util.Arrays;
@@ -36,7 +36,7 @@ public class EquipCommand extends Command {
 
         for (ItemTarget target : items) {
             for (Item item : target.getMatches()) {
-                if (!(item instanceof Equipment)) {
+                if (!ItemHelper.isEquippable(item)) {
                     throw new RuntimeCommandException("'"+item.toString().toUpperCase() + "' cannot be equipped!");
                 }
             }
@@ -84,7 +84,7 @@ public class EquipCommand extends Command {
         }
 
         private static boolean isEquipment(String cataloguedItem) {
-            return Arrays.stream(new ItemTarget(cataloguedItem).getMatches()).anyMatch(i -> i instanceof Equipment);
+            return Arrays.stream(new ItemTarget(cataloguedItem).getMatches()).anyMatch(ItemHelper::isEquippable);
         }
     }
 

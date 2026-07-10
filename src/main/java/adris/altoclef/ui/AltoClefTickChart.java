@@ -77,14 +77,24 @@ public class AltoClefTickChart {
 
 
     protected void drawBorderedText(DrawContextWrapper context, String string, int x, int y) {
+        //#if MC >= 12111
+        //$$ org.joml.Matrix3x2fStack matrixStack = context.getMatrices();
+        //$$ matrixStack.pushMatrix();
+        //$$ matrixStack.scale(0.5f,0.5f);
+        //#else
         MatrixStack matrixStack = context.getMatrices();
         matrixStack.push();
         matrixStack.scale(0.5f,0.5f,1);
+        //#endif
 
         context.fill(x*2, y*2, x*2 + this.textRenderer.getWidth(string) + 2, y*2 + this.textRenderer.fontHeight+1, 0x90505050);
         context.drawText(this.textRenderer, string, (x + 1)*2, (y + 1)*2, 0xE9E9E9, false);
 
+        //#if MC >= 12111
+        //$$ matrixStack.popMatrix();
+        //#else
         matrixStack.pop();
+        //#endif
     }
 
 
@@ -113,11 +123,19 @@ public class AltoClefTickChart {
     }
 
     private static int lerp(float delta, int start, int end) {
+        //#if MC >= 12111
+        //$$ int i = (int) MathHelper.lerp(delta, ColorHelper.getAlpha(start), ColorHelper.getAlpha(end));
+        //$$ int j = (int) MathHelper.lerp(delta, ColorHelper.getRed(start), ColorHelper.getRed(end));
+        //$$ int k = (int) MathHelper.lerp(delta, ColorHelper.getGreen(start), ColorHelper.getGreen(end));
+        //$$ int l = (int) MathHelper.lerp(delta, ColorHelper.getBlue(start), ColorHelper.getBlue(end));
+        //$$ return ColorHelper.getArgb(i, j, k, l);
+        //#else
         int i = (int) MathHelper.lerp(delta, ColorHelper.Argb.getAlpha(start), ColorHelper.Argb.getAlpha(end));
         int j = (int) MathHelper.lerp(delta, ColorHelper.Argb.getRed(start), ColorHelper.Argb.getRed(end));
         int k = (int) MathHelper.lerp(delta, ColorHelper.Argb.getGreen(start), ColorHelper.Argb.getGreen(end));
         int l = (int) MathHelper.lerp(delta, ColorHelper.Argb.getBlue(start), ColorHelper.Argb.getBlue(end));
         return ColorHelper.Argb.getArgb(i, j, k, l);
+        //#endif
     }
 
     private static double nanosToMillis(double nanos) {

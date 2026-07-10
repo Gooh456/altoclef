@@ -1,6 +1,7 @@
 package adris.altoclef.tasks.entity;
 
 import adris.altoclef.AltoClef;
+import adris.altoclef.multiversion.ToolMaterialVer;
 import adris.altoclef.tasksystem.Task;
 import adris.altoclef.util.helpers.LookHelper;
 import adris.altoclef.util.helpers.StorageHelper;
@@ -8,7 +9,7 @@ import adris.altoclef.util.slots.PlayerSlot;
 import net.minecraft.entity.Entity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
-import net.minecraft.item.SwordItem;
+import net.minecraft.registry.tag.ItemTags;
 
 import java.util.List;
 
@@ -39,14 +40,15 @@ public abstract class AbstractKillEntityTask extends AbstractDoToEntityTask {
         Item bestItem = StorageHelper.getItemStackInSlot(PlayerSlot.getEquipSlot()).getItem();
         float bestDamage = Float.NEGATIVE_INFINITY;
 
-        if (bestItem instanceof SwordItem handToolItem) {
-            bestDamage = handToolItem.getMaterial().getAttackDamage();
+        if (bestItem.getDefaultStack().isIn(ItemTags.SWORDS)) {
+            bestDamage = ToolMaterialVer.getMiningLevel(bestItem);
         }
 
         for (ItemStack invStack : invStacks) {
-            if (!(invStack.getItem() instanceof SwordItem item)) continue;
+            if (!invStack.isIn(ItemTags.SWORDS)) continue;
+            Item item = invStack.getItem();
 
-            float itemDamage = item.getMaterial().getAttackDamage();
+            float itemDamage = ToolMaterialVer.getMiningLevel(item);
 
             if (itemDamage > bestDamage) {
                 bestItem = item;

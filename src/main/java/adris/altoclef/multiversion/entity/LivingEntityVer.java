@@ -12,7 +12,9 @@ public class LivingEntityVer {
     // FIXME this should be possible with mappings, right?
     @Pattern
     private static Iterable<ItemStack> getItemsEquipped(LivingEntity entity) {
-        //#if MC >= 12005
+        //#if MC >= 12111
+        //$$ return net.minecraft.entity.EquipmentSlot.VALUES.stream().map(entity::getEquippedStack).toList();
+        //#elseif MC >= 12005
         return entity.getEquippedItems();
         //#else
         //$$ return entity.getItemsEquipped();

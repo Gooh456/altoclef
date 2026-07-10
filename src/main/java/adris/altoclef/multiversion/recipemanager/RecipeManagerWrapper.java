@@ -1,7 +1,12 @@
 package adris.altoclef.multiversion.recipemanager;
 
 import net.minecraft.recipe.RecipeManager;
+//#if MC>=12111
+//$$ import net.minecraft.recipe.ServerRecipeManager;
+//#endif
+//#if MC<=12001
 import net.minecraft.util.Identifier;
+//#endif
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,7 +29,12 @@ public class RecipeManagerWrapper {
         this.recipeManager = recipeManager;
     }
 
-    //#if MC>12001
+    //#if MC>=12111
+    //$$ public Collection<WrappedRecipeEntry> values() {
+    //$$     if (!(recipeManager instanceof ServerRecipeManager serverRecipeManager)) return List.of();
+    //$$     return serverRecipeManager.values().stream().map(r -> new WrappedRecipeEntry(r.id(), r.value())).collect(Collectors.toSet());
+    //$$ }
+    //#elseif MC>12001
     public Collection<WrappedRecipeEntry> values() {
         return recipeManager.values().stream().map(r -> new WrappedRecipeEntry(r.id(),r.value())).collect(Collectors.toSet());
     }

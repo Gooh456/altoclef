@@ -3,6 +3,7 @@ package adris.altoclef.chains;
 import adris.altoclef.AltoClef;
 import adris.altoclef.Debug;
 import adris.altoclef.control.KillAura;
+import adris.altoclef.multiversion.ToolMaterialVer;
 import adris.altoclef.multiversion.versionedfields.Entities;
 import adris.altoclef.multiversion.item.ItemVer;
 import adris.altoclef.tasks.construction.ProjectileProtectionWallTask;
@@ -34,7 +35,6 @@ import net.minecraft.entity.projectile.thrown.PotionEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.item.Items;
-import net.minecraft.item.SwordItem;
 import net.minecraft.screen.slot.SlotActionType;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Vec3d;
@@ -109,7 +109,7 @@ public class MobDefenseChain extends SingleTaskChain {
             if (toDealWith instanceof EndermanEntity || toDealWith instanceof SlimeEntity || toDealWith instanceof BlazeEntity) {
 
                 numberOfProblematicEntities += 1;
-            } else if (toDealWith instanceof DrownedEntity && toDealWith.getEquippedItems() == Items.TRIDENT) {
+            } else if (toDealWith instanceof DrownedEntity && toDealWith.getMainHandStack().getItem() == Items.TRIDENT) {
                 // Drowned with tridents are also REALLY dangerous, maybe we should increase this??
                 numberOfProblematicEntities += 5;
             }
@@ -192,14 +192,14 @@ public class MobDefenseChain extends SingleTaskChain {
 
         doingFunkyStuff = false;
         PlayerSlot offhandSlot = PlayerSlot.OFFHAND_SLOT;
-        Item offhandItem = StorageHelper.getItemStackInSlot(offhandSlot).getItem();
+        ItemStack offhandItem = StorageHelper.getItemStackInSlot(offhandSlot);
         // Run away from creepers
         CreeperEntity blowingUp = getClosestFusingCreeper(mod);
         if (blowingUp != null) {
             if ((!mod.getFoodChain().needsToEat() || mod.getPlayer().getHealth() < 9)
                     && hasShield(mod)
                     && !mod.getEntityTracker().entityFound(PotionEntity.class)
-                    && !mod.getPlayer().getItemCooldownManager().isCoolingDown(offhandItem)
+                    && !adris.altoclef.util.helpers.ItemHelper.isCoolingDown(mod.getPlayer(), offhandItem)
                     && mod.getClientBaritone().getPathingBehavior().isSafeToCancel()
                     && blowingUp.getClientFuseTime(blowingUp.getFuseSpeed()) > 0.5) {
                 LookHelper.lookAt(mod, blowingUp.getEyePos());
@@ -220,7 +220,7 @@ public class MobDefenseChain extends SingleTaskChain {
             // Block projectiles with shield
             if (mod.getModSettings().isDodgeProjectiles()
                     && hasShield(mod)
-                    && !mod.getPlayer().getItemCooldownManager().isCoolingDown(offhandItem)
+                    && !adris.altoclef.util.helpers.ItemHelper.isCoolingDown(mod.getPlayer(), offhandItem)
                     && mod.getClientBaritone().getPathingBehavior().isSafeToCancel()
                     && !mod.getEntityTracker().entityFound(PotionEntity.class) && isProjectileClose(mod)) {
                 ItemStack shieldSlot = StorageHelper.getItemStackInSlot(PlayerSlot.OFFHAND_SLOT);
@@ -319,10 +319,10 @@ public class MobDefenseChain extends SingleTaskChain {
             if (!toDealWithList.isEmpty()) {
 
                 // Depending on our weapons/armor, we may choose to straight up kill hostiles if we're not dodging their arrows.
-                SwordItem bestSword = getBestSword(mod);
+                Item bestSword = getBestSword(mod);
 
                 int armor = mod.getPlayer().getArmor();
-                float damage = bestSword == null ? 0 : (bestSword.getMaterial().getAttackDamage()) + 1;
+                float damage = bestSword == null ? 0 : (ToolMaterialVer.getMiningLevel(bestSword)) + 1;
 
                 int shield = hasShield(mod) && bestSword != null ? 3 : 0;
 
@@ -373,14 +373,14 @@ public class MobDefenseChain extends SingleTaskChain {
         return mod.getItemStorage().hasItem(Items.SHIELD) || mod.getItemStorage().hasItemInOffhand(Items.SHIELD);
     }
 
-    private static SwordItem getBestSword(AltoClef mod) {
+    private static Item getBestSword(AltoClef mod) {
         Item[] SWORDS = new Item[]{Items.NETHERITE_SWORD, Items.DIAMOND_SWORD, Items.IRON_SWORD, Items.GOLDEN_SWORD,
                 Items.STONE_SWORD, Items.WOODEN_SWORD};
 
-        SwordItem bestSword = null;
+        Item bestSword = null;
         for (Item item : SWORDS) {
             if (mod.getItemStorage().hasItem(item)) {
-                bestSword = (SwordItem) item;
+                bestSword = item;
                 break;
             }
         }

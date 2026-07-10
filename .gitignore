@@ -25,6 +25,7 @@ atlassian-ide-plugin.xml
 
 # Package Files #
 *.jar
+!versions/baritone/dist/*.jar
 *.war
 *.nar
 *.ear

@@ -20,7 +20,12 @@ public final class ChatReadMixin {
             at = @At("HEAD")
     )
     private void onChatMessage(SignedMessage message, GameProfile sender, MessageType.Parameters params, CallbackInfo ci) {
-        ChatMessageEvent evt = new ChatMessageEvent(message.getContent().getString(), sender.getName(), MessageTypeVer.getMessageType(params));
+        //#if MC >= 12111
+        //$$ String senderName = sender.name();
+        //#else
+        String senderName = sender.getName();
+        //#endif
+        ChatMessageEvent evt = new ChatMessageEvent(message.getContent().getString(), senderName, MessageTypeVer.getMessageType(params));
         EventBus.publish(evt);
     }
 }

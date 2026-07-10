@@ -101,7 +101,13 @@ public class CraftingRecipeTracker extends Tracker{
         ClientPlayNetworkHandler networkHandler =  MinecraftClient.getInstance().getNetworkHandler();
         if (networkHandler == null) return;
 
-        RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(networkHandler.getRecipeManager());
+        //#if MC>=12111
+        net.minecraft.server.integrated.IntegratedServer integratedServer = MinecraftClient.getInstance().getServer();
+        if (integratedServer == null) return;
+        RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(integratedServer.getRecipeManager());
+        //#else
+        //$$ RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(networkHandler.getRecipeManager());
+        //#endif
 
         for (WrappedRecipeEntry recipe : recipeManager.values()) {
             if (!(recipe.value() instanceof net.minecraft.recipe.CraftingRecipe craftingRecipe)) continue;
@@ -109,10 +115,10 @@ public class CraftingRecipeTracker extends Tracker{
             // not implemented for now because it isn't needed (I hope xd)
             if (craftingRecipe instanceof SpecialCraftingRecipe) continue;
 
-            // the arguments shouldn't be used, we can just pass null
-            ItemStack result = new ItemStack(craftingRecipe.getResult(null).getItem(), craftingRecipe.getResult(null).getCount());
+            ItemStack rawResult = adris.altoclef.multiversion.CraftingRecipeVer.getOutputPublic(craftingRecipe);
+            ItemStack result = new ItemStack(rawResult.getItem(), rawResult.getCount());
 
-            Item[][] altoclefRecipeItems = getShapedCraftingRecipe(craftingRecipe.getIngredients());
+            Item[][] altoclefRecipeItems = getShapedCraftingRecipe(adris.altoclef.multiversion.CraftingRecipeVer.getIngredients(craftingRecipe));
 
             adris.altoclef.util.CraftingRecipe altoclefRecipe = adris.altoclef.util.CraftingRecipe.newShapedRecipe(altoclefRecipeItems, result.getCount());
 
@@ -141,19 +147,13 @@ public class CraftingRecipeTracker extends Tracker{
         int x = 0;
 
         for (Ingredient ingredient : ingredients) {
-            ItemStack[] stacks = ingredient.getMatchingStacks();
-            Item[] items = new Item[stacks.length];
+            //#if MC >= 12111
+            //$$ Item[] items = ingredient.getMatchingItems().map(net.minecraft.registry.entry.RegistryEntry::value).toArray(Item[]::new);
+            //#else
+            Item[] items = java.util.Arrays.stream(ingredient.getMatchingStacks()).map(ItemStack::getItem).toArray(Item[]::new);
+            //#endif
 
-            for (int i = 0; i < stacks.length; i++) {
-                ItemStack stack = stacks[i];
-                if (stack.getCount() > 1) {
-                    throw new IllegalStateException("recipe needs more then one item on a slot... well... shit (ingredients: " + ingredient + ")");
-                }
-
-                items[i] = stack.getItem();
-            }
-
-            if (stacks.length != 0) {
+            if (items.length != 0) {
                 // FIXME this is so stupid, but TaskCatalogue is kinda setup this way, so it would require a rewrite to allow for multiple resource :')
                 result[x] = new Item[]{items[0]};
             } else {

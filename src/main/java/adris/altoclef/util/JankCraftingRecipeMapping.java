@@ -27,7 +27,12 @@ public class JankCraftingRecipeMapping {
 
         // Check if the network handler is available
         if (client.getNetworkHandler() != null) {
-            RecipeManagerWrapper recipes = RecipeManagerWrapper.of(client.getNetworkHandler().getRecipeManager());
+            //#if MC>=12111
+            net.minecraft.server.integrated.IntegratedServer integratedServer = client.getServer();
+            RecipeManagerWrapper recipes = integratedServer == null ? null : RecipeManagerWrapper.of(integratedServer.getRecipeManager());
+            //#else
+            //$$ RecipeManagerWrapper recipes = RecipeManagerWrapper.of(client.getNetworkHandler().getRecipeManager());
+            //#endif
             ClientWorld world = client.world;
 
             // Check if the recipe manager is available
@@ -60,9 +65,9 @@ public class JankCraftingRecipeMapping {
                         .filter(itemTarget -> itemTarget != null && !itemTarget.isEmpty())
                         .collect(Collectors.toList());
                 // Check if the recipe has ingredients
-                if (!checkRecipe.value().getIngredients().isEmpty()) {
+                if (checkRecipe.value() instanceof net.minecraft.recipe.CraftingRecipe checkCraftingRecipe && !adris.altoclef.multiversion.CraftingRecipeVer.getIngredients(checkCraftingRecipe).isEmpty()) {
                     // Iterate through the ingredients of the recipe
-                    for (Ingredient ingredient : checkRecipe.value().getIngredients()) {
+                    for (Ingredient ingredient : adris.altoclef.multiversion.CraftingRecipeVer.getIngredients(checkCraftingRecipe)) {
                         // Skip empty ingredients
                         if (ingredient.isEmpty()) {
                             continue;
@@ -71,13 +76,22 @@ public class JankCraftingRecipeMapping {
                         outer:
                         for (int i = 0; i < toSatisfy.size(); ++i) {
                             ItemTarget target = toSatisfy.get(i);
-                            // Check if any of the ingredient's matching stacks matches the item target
+                            // Check if any of the ingredient's matching items matches the item target
+                            //#if MC >= 12111
+                            //$$ for (var itemEntry : ingredient.getMatchingItems().toList()) {
+                            //$$     if (target.matches(itemEntry.value())) {
+                            //$$         toSatisfy.remove(i);
+                            //$$         break outer;
+                            //$$     }
+                            //$$ }
+                            //#else
                             for (ItemStack stack : ingredient.getMatchingStacks()) {
                                 if (target.matches(stack.getItem())) {
                                     toSatisfy.remove(i);
                                     break outer;
                                 }
                             }
+                            //#endif
                         }
                     }
                 }

@@ -100,7 +100,7 @@ public class CraftGenericManuallyTask extends Task {
                 if (!isSatisfied) {
                     // We have items that satisfy, but we CAN NOT fill in the current slot!
                     // In that case, just grab from the output.
-                    if (!mod.getItemStorage().hasItemInventoryOnly(present.getItem())) {
+                    if (!mod.getItemStorage().hasItemInventoryOnly(toFill.getMatches())) {
                         if (!StorageHelper.getItemStackInSlot(outputSlot).isEmpty()) {
                             setDebugState("NO MORE to fit: grabbing from output.");
                             return new ReceiveCraftingOutputSlotTask(outputSlot, target.getTargetCount());
@@ -117,7 +117,7 @@ public class CraftGenericManuallyTask extends Task {
                 boolean oversatisfies = present.getCount() > requiredPerSlot;
                 if (oversatisfies) {
                     setDebugState("OVER SATISFIED slot! Right clicking slot to extract half and spread it out more.");
-                    mod.getSlotHandler().clickSlot(currentCraftSlot, 0, SlotActionType.PICKUP);
+                    mod.getSlotHandler().clickSlot(currentCraftSlot, 1, SlotActionType.PICKUP);
                 }
             }
         }

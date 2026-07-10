@@ -17,8 +17,7 @@
     "MiningToolItemAccessor",
     "PersistentProjectileEntityAccessor",
     "PortalManagerAccessor",
-    "SlotClickMixin",
-    "WorldBlockModifiedMixin"
+    "SlotClickMixin"
   ],
   "client": [
     "ChatInputMixin",
@@ -32,7 +31,8 @@
     "LoadChunkMixin",
     "MixinLocalPlayer",
     "PlayerCollidesWithEntityMixin",
-    "SimpleOptionMixin"
+    "SimpleOptionMixin",
+    "WorldBlockModifiedMixin"
   ],
   "injectors": {
     "defaultRequire": 1

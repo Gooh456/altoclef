@@ -21,6 +21,47 @@ import java.util.*;
  * Helper functions and definitions for useful groupings of items
  */
 public class ItemHelper {
+
+    public static boolean isCoolingDown(net.minecraft.entity.player.PlayerEntity player, Item item) {
+        //#if MC >= 12111
+        //$$ return player.getItemCooldownManager().isCoolingDown(item.getDefaultStack());
+        //#else
+        return player.getItemCooldownManager().isCoolingDown(item);
+        //#endif
+    }
+
+    public static boolean isCoolingDown(net.minecraft.entity.player.PlayerEntity player, ItemStack stack) {
+        //#if MC >= 12111
+        //$$ return player.getItemCooldownManager().isCoolingDown(stack);
+        //#else
+        return player.getItemCooldownManager().isCoolingDown(stack.getItem());
+        //#endif
+    }
+
+    public static boolean isEquippable(Item item) {
+        //#if MC >= 12111
+        //$$ return item.getComponents().contains(net.minecraft.component.DataComponentTypes.EQUIPPABLE);
+        //#else
+        return item instanceof net.minecraft.item.Equipment;
+        //#endif
+    }
+
+    // Returns the armor EquipmentSlot for this item, or null if it isn't an armor piece.
+    public static net.minecraft.entity.EquipmentSlot getArmorSlot(Item item) {
+        //#if MC >= 12111
+        //$$ net.minecraft.component.type.EquippableComponent equippable = item.getComponents().get(net.minecraft.component.DataComponentTypes.EQUIPPABLE);
+        //$$ if (equippable != null && equippable.slot().getType() == net.minecraft.entity.EquipmentSlot.Type.HUMANOID_ARMOR) {
+        //$$     return equippable.slot();
+        //$$ }
+        //$$ return null;
+        //#else
+        if (item instanceof net.minecraft.item.ArmorItem armorItem) {
+            return armorItem.getSlotType();
+        }
+        return null;
+        //#endif
+    }
+
     public static final Item[] SAPLINGS = new Item[]{Items.OAK_SAPLING, Items.SPRUCE_SAPLING, Items.BIRCH_SAPLING,
             Items.JUNGLE_SAPLING, Items.ACACIA_SAPLING, Items.DARK_OAK_SAPLING, Items.MANGROVE_PROPAGULE,
             Items.CHERRY_SAPLING};
@@ -400,22 +441,38 @@ public class ItemHelper {
         return to.getItem().equals(from.getItem()) && (from.getCount() + to.getCount() < to.getMaxCount());
     }
 
+    //#if MC >= 12111
+    //$$ private static net.minecraft.item.FuelRegistry getFuelRegistry() {
+    //$$     return net.minecraft.client.MinecraftClient.getInstance().world.getFuelRegistry();
+    //$$ }
+    //#else
     private static Map<Item, Integer> getFuelTimeMap() {
         if (fuelTimeMap == null) {
             fuelTimeMap = AbstractFurnaceBlockEntity.createFuelTimeMap();
         }
         return fuelTimeMap;
     }
+    //#endif
 
     public static double getFuelAmount(Item... items) {
         double total = 0;
         for (Item item : items) {
+            //#if MC >= 12111
+            //$$ ItemStack stack = item.getDefaultStack();
+            //$$ if (getFuelRegistry().isFuel(stack)) {
+            //$$     int timeTicks = getFuelRegistry().getFuelTicks(stack);
+            //$$     // 300 ticks of wood -> 1.5 operations
+            //$$     // 200 ticks -> 1 operation
+            //$$     total += (double) timeTicks / 200.0;
+            //$$ }
+            //#else
             if (getFuelTimeMap().containsKey(item)) {
                 int timeTicks = getFuelTimeMap().get(item);
                 // 300 ticks of wood -> 1.5 operations
                 // 200 ticks -> 1 operation
                 total += (double) timeTicks / 200.0;
             }
+            //#endif
         }
         return total;
     }
@@ -425,7 +482,11 @@ public class ItemHelper {
     }
 
     public static boolean isFuel(Item item) {
+        //#if MC >= 12111
+        //$$ return getFuelRegistry().isFuel(item.getDefaultStack());
+        //#else
         return getFuelTimeMap().containsKey(item);
+        //#endif
     }
 
     public boolean isRawFood(Item item) {

@@ -29,6 +29,9 @@ import net.minecraft.entity.Entity;
 import net.minecraft.entity.mob.SkeletonEntity;
 import net.minecraft.util.ActionResult;
 import net.minecraft.util.Hand;
+//#if MC>=12111
+//$$ import net.minecraft.util.PlayerInput;
+//#endif
 import net.minecraft.util.hit.BlockHitResult;
 import net.minecraft.util.math.BlockPos;
 import net.minecraft.util.math.Direction;
@@ -186,16 +189,31 @@ public class ProjectileProtectionWallTask extends Task implements ITaskRequiresG
     }
 	
 	public void interact(BlockHitResult blockHitResult, Hand hand) {
+        //#if MC>=12111
+        //$$ PlayerInput wasInput = mod.getPlayer().input.playerInput;
+        //$$ mod.getPlayer().input.playerInput = new PlayerInput(wasInput.forward(), wasInput.backward(), wasInput.left(), wasInput.right(), wasInput.jump(), false, wasInput.sprint());
+        //#else
         boolean wasSneaking = mod.getPlayer().input.sneaking;
         mod.getPlayer().input.sneaking = false;
+        //#endif
 
         ActionResult result = mod.getController().interactBlock(mod.getPlayer(),hand, blockHitResult);
 
+        //#if MC>=12111
+        //$$ if (result instanceof ActionResult.Success success && success.swingSource() != ActionResult.SwingSource.NONE) {
+        //$$     mod.getPlayer().swingHand(hand);
+        //$$ }
+        //#else
         if (result.shouldSwingHand()) {
             mod.getPlayer().swingHand(hand);
         }
+        //#endif
 
+        //#if MC>=12111
+        //$$ mod.getPlayer().input.playerInput = wasInput;
+        //#else
         mod.getPlayer().input.sneaking = wasSneaking;
+        //#endif
     }
 
 	public boolean canPlace(BlockPos blockPos, boolean checkEntities) {

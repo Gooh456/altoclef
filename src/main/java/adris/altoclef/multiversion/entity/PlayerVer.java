@@ -3,10 +3,39 @@ package adris.altoclef.multiversion.entity;
 import adris.altoclef.multiversion.Pattern;
 import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.entity.player.PlayerInventory;
 import net.minecraft.inventory.Inventory;
 import net.minecraft.item.ItemStack;
+import net.minecraft.util.collection.DefaultedList;
 
 public class PlayerVer {
+
+    @Pattern
+    public static int getSelectedSlot(PlayerInventory inventory) {
+        //#if MC >= 12111
+        //$$ return inventory.getSelectedSlot();
+        //#else
+        return inventory.selectedSlot;
+        //#endif
+    }
+
+    @Pattern
+    public static void setSelectedSlot(PlayerInventory inventory, int slot) {
+        //#if MC >= 12111
+        //$$ inventory.setSelectedSlot(slot);
+        //#else
+        inventory.selectedSlot = slot;
+        //#endif
+    }
+
+    @Pattern
+    public static DefaultedList<ItemStack> getMainStacks(PlayerInventory inventory) {
+        //#if MC >= 12111
+        //$$ return inventory.getMainStacks();
+        //#else
+        return inventory.main;
+        //#endif
+    }
 
 
     public static void sendChatMessage(ClientPlayerEntity player,String content) {

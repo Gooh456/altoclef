@@ -113,8 +113,8 @@ public interface WorldHelper {
     static Dimension getCurrentDimension() {
         ClientWorld world = MinecraftClient.getInstance().world;
         if (world == null) return Dimension.OVERWORLD;
-        if (world.getDimension().ultrawarm()) return Dimension.NETHER;
-        if (world.getDimension().natural()) return Dimension.OVERWORLD;
+        if (world.getRegistryKey() == net.minecraft.world.World.NETHER) return Dimension.NETHER;
+        if (world.getRegistryKey() == net.minecraft.world.World.OVERWORLD) return Dimension.OVERWORLD;
         return Dimension.END;
     }
 

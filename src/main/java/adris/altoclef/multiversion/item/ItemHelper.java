@@ -1,15 +1,17 @@
 package adris.altoclef.multiversion.item;
 
-import adris.altoclef.mixins.AxeItemAccessor;
-import adris.altoclef.mixins.MiningToolItemAccessor;
-import net.minecraft.block.Block;
-import net.minecraft.block.BlockState;
-import net.minecraft.item.AxeItem;
-import net.minecraft.item.Item;
-import net.minecraft.item.MiningToolItem;
-import net.minecraft.item.PickaxeItem;
-
-import java.util.Set;
+//#if MC <= 11605
+//$$ import adris.altoclef.mixins.AxeItemAccessor;
+//$$ import adris.altoclef.mixins.MiningToolItemAccessor;
+//$$ import net.minecraft.block.Block;
+//$$ import net.minecraft.block.BlockState;
+//$$ import net.minecraft.item.AxeItem;
+//$$ import net.minecraft.item.Item;
+//$$ import net.minecraft.item.MiningToolItem;
+//$$ import net.minecraft.item.PickaxeItem;
+//$$
+//$$ import java.util.Set;
+//#endif
 
 public class ItemHelper {
 
