@@ -32,7 +32,11 @@ A few real bugs turned up (and got fixed) along the way, in case you're hitting 
 - On a real (non-singleplayer) server, recipe lookups could come back empty and crash tasks that relied on them, since the recipe source used only ever works for hosting singleplayer/LAN.
 - A `ConcurrentModificationException` could crash the mob-defense "force field" logic (and a few related entity-lookup calls) - the entity tracker was handing out direct references to its own live lists instead of safe snapshots.
 
-Build it yourself with `./gradlew :1.21.11:build` (needs JDK 21) - the Baritone jar is already committed under `versions/baritone/dist/` so it works with zero extra setup.
+Baritone for 1.21.11 isn't on the maven repo yet - the patches are up as their own PR against [baritone_altoclef](https://github.com/MiranCZ/baritone_altoclef) so it can get built and published the normal way. Until that's merged, build Baritone yourself from that branch, drop the jar in `versions/baritone/dist/`, and run with `-Paltoclef.development=true`:
+
+```
+./gradlew :1.21.11:build -Paltoclef.development=true
+```
 
 ## The preprocessor
 I am currently using the [replay mod preprocessor](https://github.com/ReplayMod/preprocessor) to keep the mod updated across multiple versions at the same time.

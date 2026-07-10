@@ -128,7 +128,12 @@ dependencies {
     shadow('com.fasterxml.jackson.core:jackson-databind:2.16.0')
 
     // Thank you georgeagostino for fixing my garbage
-    if (getProject().hasProperty("altoclef.development")) {
+    // Per-version: use a locally-built dev jar from ../baritone/dist if one exists for this
+    // specific version (or "altoclef.development" forces it for every version, old behaviour),
+    // otherwise fetch the published artifact like normal. This way a version with no published
+    // Baritone yet (or no local jar) doesn't break every other version's build.
+    if (getProject().hasProperty("altoclef.development") ||
+            file("${project.projectDir}/../baritone/dist/baritone-unoptimized-fabric-${project.name}.jar").exists()) {
         // Must run build from baritone-plus once
         modImplementation "baritone-api-fabric:baritone-unoptimized-fabric-${project.name}"
         include "baritone-api-fabric:baritone-unoptimized-fabric-${project.name}"
