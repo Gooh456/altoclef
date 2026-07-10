@@ -4,6 +4,7 @@ import adris.altoclef.AltoClef;
 import adris.altoclef.multiversion.recipemanager.RecipeManagerWrapper;
 import adris.altoclef.multiversion.recipemanager.WrappedRecipeEntry;
 import adris.altoclef.util.RecipeTarget;
+import adris.altoclef.util.time.TimerGame;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayNetworkHandler;
 import net.minecraft.item.Item;
@@ -21,6 +22,10 @@ public class CraftingRecipeTracker extends Tracker{
 
     private final HashMap<Item, List<adris.altoclef.util.CraftingRecipe>> itemRecipeMap = new HashMap<>();
     private final HashMap<adris.altoclef.util.CraftingRecipe, ItemStack> recipeResultMap = new HashMap<>();
+
+    // Only used on MC>=12111 remote multiplayer, where the recipes we can see grow as the player
+    // unlocks more of them - keeps re-scanning periodically instead of freezing at the first snapshot.
+    private final TimerGame recipeBookRebuildTimer = new TimerGame(5);
 
     private boolean shouldRebuild;
 
@@ -102,11 +107,53 @@ public class CraftingRecipeTracker extends Tracker{
         if (networkHandler == null) return;
 
         //#if MC>=12111
-        //$$ // The integrated server's recipe manager only exists when hosting singleplayer/LAN.
-        //$$ // On a real remote server there is no local server object, so recipes must instead be
-        //$$ // read from the client's synced recipe book, which is populated over the network either way.
+        //$$ // The integrated server's recipe manager only exists when hosting singleplayer/LAN, but when
+        //$$ // it does, it has every recipe unconditionally - same as older versions, no per-player "discovery"
+        //$$ // gating - so prefer it whenever possible.
+        //$$ net.minecraft.server.integrated.IntegratedServer integratedServer = MinecraftClient.getInstance().getServer();
+        //$$ if (integratedServer != null) {
+        //$$     RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(integratedServer.getRecipeManager());
+        //$$
+        //$$     for (WrappedRecipeEntry recipe : recipeManager.values()) {
+        //$$         if (!(recipe.value() instanceof net.minecraft.recipe.CraftingRecipe craftingRecipe)) continue;
+        //$$         if (craftingRecipe instanceof SpecialCraftingRecipe) continue;
+        //$$
+        //$$         ItemStack rawResult = adris.altoclef.multiversion.CraftingRecipeVer.getOutputPublic(craftingRecipe);
+        //$$         ItemStack result = new ItemStack(rawResult.getItem(), rawResult.getCount());
+        //$$
+        //$$         Item[][] altoclefRecipeItems = getShapedCraftingRecipe(adris.altoclef.multiversion.CraftingRecipeVer.getIngredients(craftingRecipe));
+        //$$
+        //$$         adris.altoclef.util.CraftingRecipe altoclefRecipe = adris.altoclef.util.CraftingRecipe.newShapedRecipe(altoclefRecipeItems, result.getCount());
+        //$$
+        //$$         if (itemRecipeMap.containsKey(result.getItem())) {
+        //$$             itemRecipeMap.get(result.getItem()).add(altoclefRecipe);
+        //$$         } else {
+        //$$             List<adris.altoclef.util.CraftingRecipe> recipes = new ArrayList<>();
+        //$$             recipes.add(altoclefRecipe);
+        //$$
+        //$$             itemRecipeMap.put(result.getItem(), recipes);
+        //$$         }
+        //$$
+        //$$         recipeResultMap.put(altoclefRecipe, result);
+        //$$     }
+        //$$
+        //$$     itemRecipeMap.replaceAll((k,v) -> Collections.unmodifiableList(v));
+        //$$     shouldRebuild = false;
+        //$$     return;
+        //$$ }
+        //$$
+        //$$ // Real remote multiplayer: there is no local server object, so recipes must instead be read
+        //$$ // from the client's synced recipe book. Unlike the full recipe manager above, this only ever
+        //$$ // contains recipes the player has actually unlocked, and that set grows as they play - so
+        //$$ // keep re-scanning periodically instead of freezing at the (likely incomplete) first snapshot.
+        //$$ if (!recipeBookRebuildTimer.elapsed()) return;
+        //$$ recipeBookRebuildTimer.reset();
+        //$$
         //$$ net.minecraft.client.network.ClientPlayerEntity player = MinecraftClient.getInstance().player;
         //$$ if (player == null) return;
+        //$$
+        //$$ itemRecipeMap.clear();
+        //$$ recipeResultMap.clear();
         //$$
         //$$ for (net.minecraft.client.gui.screen.recipebook.RecipeResultCollection collection : player.getRecipeBook().getOrderedResults()) {
         //$$     for (net.minecraft.recipe.RecipeDisplayEntry entry : collection.getAllRecipes()) {
@@ -135,6 +182,9 @@ public class CraftingRecipeTracker extends Tracker{
         //$$         recipeResultMap.put(altoclefRecipe, result);
         //$$     }
         //$$ }
+        //$$
+        //$$ itemRecipeMap.replaceAll((k,v) -> Collections.unmodifiableList(v));
+        //$$ // Deliberately NOT setting shouldRebuild = false here - see comment above.
         //#else
         RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(networkHandler.getRecipeManager());
 
@@ -162,11 +212,11 @@ public class CraftingRecipeTracker extends Tracker{
 
             recipeResultMap.put(altoclefRecipe, result);
         }
-        //#endif
 
         itemRecipeMap.replaceAll((k,v) -> Collections.unmodifiableList(v));
 
         shouldRebuild = false;
+        //#endif
     }
 
     // TODO adjust for small recipes

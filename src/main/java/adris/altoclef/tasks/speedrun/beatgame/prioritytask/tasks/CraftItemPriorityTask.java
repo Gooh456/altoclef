@@ -55,6 +55,13 @@ public class CraftItemPriorityTask extends PriorityTask{
 
     @Override
     protected double getPriority(AltoClef mod) {
+        if (recipeTarget.getRecipe() == null) {
+            // The tracker didn't know a recipe for this item (e.g. not yet discovered in the
+            // player's recipe book on a fresh world/remote server) - never select this task,
+            // since getTask() would otherwise NPE dereferencing the missing recipe.
+            return Double.NEGATIVE_INFINITY;
+        }
+
         if (BeatMinecraftTask.hasItem(mod, recipeTarget.getOutputItem())) {
             Debug.logInternal("THIS IS SATISFIED "+recipeTarget.getOutputItem());
             satisfied = true;
