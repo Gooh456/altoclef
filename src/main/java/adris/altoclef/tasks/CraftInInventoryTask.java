@@ -1,15 +1,19 @@
 package adris.altoclef.tasks;
 
 import adris.altoclef.AltoClef;
+import adris.altoclef.multiversion.recipemanager.WrappedRecipeEntry;
 import adris.altoclef.tasks.resources.CollectRecipeCataloguedResourcesTask;
 import adris.altoclef.tasks.slot.ReceiveCraftingOutputSlotTask;
 import adris.altoclef.tasksystem.Task;
 import adris.altoclef.util.ItemTarget;
+import adris.altoclef.util.JankCraftingRecipeMapping;
 import adris.altoclef.util.RecipeTarget;
 import adris.altoclef.util.helpers.ItemHelper;
 import adris.altoclef.util.helpers.StorageHelper;
 import adris.altoclef.util.slots.PlayerSlot;
 import adris.altoclef.util.slots.Slot;
+import net.minecraft.client.MinecraftClient;
+import net.minecraft.client.network.ClientPlayerEntity;
 import net.minecraft.item.Item;
 import net.minecraft.item.ItemStack;
 import net.minecraft.screen.slot.SlotActionType;
@@ -89,9 +93,26 @@ public class CraftInInventoryTask extends ResourceTask {
         // No need to free inventory, output gets picked up.
 
         setDebugState("Crafting in inventory... for " + toGet);
-        return mod.getModSettings().shouldUseCraftingBookToCraft()
-                ? new CraftGenericWithRecipeBooksTask(_target)
-                : new CraftGenericManuallyTask(_target);
+
+        if (mod.getModSettings().shouldUseCraftingBookToCraft()) {
+            Optional<WrappedRecipeEntry> recipeToSend = JankCraftingRecipeMapping.getMinecraftMappedRecipe(_target.getRecipe(), _target.getOutputItem());
+            if (recipeToSend.isPresent()) {
+                ClientPlayerEntity player = MinecraftClient.getInstance().player;
+                assert player != null;
+                //#if MC>=12111
+                //$$ if (adris.altoclef.util.NetworkRecipeIdHelper.findMatching(player, recipeToSend.get()).isPresent()) {
+                //#else
+                if (player.getRecipeBook().contains(recipeToSend.get().id())) {
+                //#endif
+                    return new CraftGenericWithRecipeBooksTask(_target);
+                }
+            }
+        }
+
+        // Recipe book crafting isn't available (e.g. the recipe isn't tracked, or - on 1.21.11 -
+        // we're on a remote server where the client never receives full server recipe data), fall
+        // back to manually dragging items into the crafting grid.
+        return new CraftGenericManuallyTask(_target);
     }
 
     @Override

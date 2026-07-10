@@ -102,12 +102,41 @@ public class CraftingRecipeTracker extends Tracker{
         if (networkHandler == null) return;
 
         //#if MC>=12111
-        net.minecraft.server.integrated.IntegratedServer integratedServer = MinecraftClient.getInstance().getServer();
-        if (integratedServer == null) return;
-        RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(integratedServer.getRecipeManager());
+        //$$ // The integrated server's recipe manager only exists when hosting singleplayer/LAN.
+        //$$ // On a real remote server there is no local server object, so recipes must instead be
+        //$$ // read from the client's synced recipe book, which is populated over the network either way.
+        //$$ net.minecraft.client.network.ClientPlayerEntity player = MinecraftClient.getInstance().player;
+        //$$ if (player == null) return;
+        //$$
+        //$$ for (net.minecraft.client.gui.screen.recipebook.RecipeResultCollection collection : player.getRecipeBook().getOrderedResults()) {
+        //$$     for (net.minecraft.recipe.RecipeDisplayEntry entry : collection.getAllRecipes()) {
+        //$$         if (entry.craftingRequirements().isEmpty()) continue;
+        //$$
+        //$$         List<Ingredient> ingredients = entry.craftingRequirements().get();
+        //$$         List<ItemStack> resultStacks = entry.getStacks(net.minecraft.recipe.display.SlotDisplayContexts.createParameters(player.getEntityWorld()));
+        //$$         if (resultStacks.isEmpty()) continue;
+        //$$
+        //$$         ItemStack rawResult = resultStacks.get(0);
+        //$$         ItemStack result = new ItemStack(rawResult.getItem(), rawResult.getCount());
+        //$$
+        //$$         Item[][] altoclefRecipeItems = getShapedCraftingRecipe(ingredients);
+        //$$
+        //$$         adris.altoclef.util.CraftingRecipe altoclefRecipe = adris.altoclef.util.CraftingRecipe.newShapedRecipe(altoclefRecipeItems, result.getCount());
+        //$$
+        //$$         if (itemRecipeMap.containsKey(result.getItem())) {
+        //$$             itemRecipeMap.get(result.getItem()).add(altoclefRecipe);
+        //$$         } else {
+        //$$             List<adris.altoclef.util.CraftingRecipe> recipes = new ArrayList<>();
+        //$$             recipes.add(altoclefRecipe);
+        //$$
+        //$$             itemRecipeMap.put(result.getItem(), recipes);
+        //$$         }
+        //$$
+        //$$         recipeResultMap.put(altoclefRecipe, result);
+        //$$     }
+        //$$ }
         //#else
-        //$$ RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(networkHandler.getRecipeManager());
-        //#endif
+        RecipeManagerWrapper recipeManager = RecipeManagerWrapper.of(networkHandler.getRecipeManager());
 
         for (WrappedRecipeEntry recipe : recipeManager.values()) {
             if (!(recipe.value() instanceof net.minecraft.recipe.CraftingRecipe craftingRecipe)) continue;
@@ -133,6 +162,7 @@ public class CraftingRecipeTracker extends Tracker{
 
             recipeResultMap.put(altoclefRecipe, result);
         }
+        //#endif
 
         itemRecipeMap.replaceAll((k,v) -> Collections.unmodifiableList(v));
 
